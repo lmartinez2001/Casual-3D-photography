@@ -80,3 +80,4 @@ Desktop.ini
 
 # VSCode Python debugging files
 *.pid
+res/
