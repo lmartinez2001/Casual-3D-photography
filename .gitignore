@@ -1,0 +1,82 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# VSCode settings and workspace files
+.vscode/
+*.code-workspace
+
+# Virtual environments
+env/
+venv/
+ENV/
+.env/
+.venv/
+
+# Pipenv virtual environments
+Pipfile.lock
+
+# Poetry virtual environments
+poetry.lock
+
+# Python-specific environment files
+*.env
+*.venv
+*.pyenv
+*.tox
+*.virtualenv
+
+# Pytest cache
+.pytest_cache/
+
+# MyPy cache
+.mypy_cache/
+
+# Coverage reports
+.coverage
+htmlcov/
+.coverage.*
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Logs and debug files
+logs/
+*.log
+*.out
+*.err
+
+# Temporary files
+*.bak
+*.swp
+*.swo
+
+# Data files
+*.csv
+*.tsv
+*.json
+*.sqlite
+*.db
+
+# Jupyter notebook outputs (optional)
+**/*.ipynb_checkpoints/
+
+# DS_Store (macOS)
+.DS_Store
+
+# Windows-specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VSCode Python debugging files
+*.pid
