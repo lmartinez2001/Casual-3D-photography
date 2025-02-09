@@ -81,4 +81,11 @@ Desktop.ini
 # VSCode Python debugging files
 *.pid
 
+#Draft
+
+draft/
 res/
+
+#dataset
+
+library-mobile/
