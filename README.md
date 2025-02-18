@@ -6,6 +6,6 @@
 
 ## Dense depth-map estimation
 
-## Stitching
+## Stitching + Meshing
 
 ## Normal maps
