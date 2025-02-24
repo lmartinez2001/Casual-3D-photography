@@ -2,15 +2,39 @@ import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 
-def parse_extrinsic_matrix(file_path):
+
+def decompose_projection_matrix(P, K):
+    # Ensure K is invertible
+    K_inv = np.linalg.inv(K)
+    
+    # Extract rotation and translation
+    M = P[:, :3]  # First 3 columns (K * R)
+    p4 = P[:, 3]  # Last column (K * t)
+    
+    # Compute R and t
+    R = np.dot(K_inv, M)
+    t = np.dot(K_inv, p4)
+    
+    # Ensure R is a valid rotation matrix
+    U, _, Vt = np.linalg.svd(R)  # Enforce orthonormality
+    R = np.dot(U, Vt)
+
+    return R, t
+
+def construct_4x4_extrinsic(R, t):
+    E = np.eye(4)  # Initialize as identity matrix
+    E[:3, :3] = R  # Set rotation part
+    E[:3, 3] = t.flatten()  # Set translation part
+    return E
+
+def parse_extrinsic_matrix(file_path,K_intrinsic):
 
     # Convert the list into a 3x4 matrix
-    matrix_3x4 = np.loadtxt(file_path)
+    P_matrix_3x4 = np.loadtxt(file_path)
     
-    # Add a 4th row [0, 0, 0, 1] to make it a 4x4 matrix
-    matrix_4x4 = np.vstack([matrix_3x4, [0, 0, 0, 1]])
+    R, t = decompose_projection_matrix(P_matrix_3x4, K_intrinsic)
     
-    return matrix_4x4
+    return construct_4x4_extrinsic(R, t)
 
 def parse_pinhole_camera_params(file_path):
     """
