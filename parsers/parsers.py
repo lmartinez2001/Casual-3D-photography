@@ -95,6 +95,23 @@ def load_image_to_numpy(image_path,resize = None):
     image_array = np.array(image)
 
     return image_array
+
+def compute_rotation_matrix(forward, up):
+    # Normalize input vectors
+    forward = forward / np.linalg.norm(forward)
+    up = up / np.linalg.norm(up)
+
+    # Compute right vector
+    right = np.cross(up, forward)
+    right /= np.linalg.norm(right)
+
+    # Recompute forward to ensure orthogonality
+    forward = np.cross(right, up)
+    forward /= np.linalg.norm(forward)
+
+    # Construct rotation matrix
+    R = np.stack([right, up, -forward], axis=1)  # 3x3 matrix
+    return R
     
 if __name__ == "__main__":
 
