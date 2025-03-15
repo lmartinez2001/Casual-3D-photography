@@ -8,7 +8,7 @@ from tqdm import tqdm
 import os
 
 
-def depth_to_point_cloud(color_image,depth_image,K,E,trunc,scale,subsample = 1):
+def depth_to_point_cloud(color_image,depth_image,K,E,trunc,scale):
     """
     Converts a depth image to a point cloud and visualizes it using Open3D.
     
@@ -18,40 +18,21 @@ def depth_to_point_cloud(color_image,depth_image,K,E,trunc,scale,subsample = 1):
     """
     
     # Convert depth image to an Open3D depth image (requires the depth to be in meters)
-    depth_o3d = o3d.t.geometry.Image(depth_image.astype(np.float32))
-    color_o3d = o3d.t.geometry.Image(color_image.astype(np.uint8))
-    rgbd_o3d = o3d.t.geometry.RGBDImage(color_o3d, depth_o3d)
+    depth_o3d = o3d.geometry.Image(depth_image.astype(np.float32))
+    color_o3d = o3d.geometry.Image(color_image.astype(np.uint8))
+    rgbd_o3d = o3d.geometry.RGBDImage.create_from_color_and_depth(color_o3d, depth_o3d,convert_rgb_to_intensity = False,depth_scale=1.0, depth_trunc=trunc)
 
     # Create the intrinsic camera parameters from the provided matrix
-    #intrinsic = o3d.camera.PinholeCameraIntrinsic(depth_image.shape[1], depth_image.shape[0], K)
+    intrinsic = o3d.camera.PinholeCameraIntrinsic(depth_image.shape[1], depth_image.shape[0], K)
 
     # Generate the point cloud from rgbd image 
-    pcd = o3d.t.geometry.PointCloud.create_from_rgbd_image(rgbd_o3d,K,E,
-                                                           depth_scale=1.0, depth_max=trunc,stride = subsample)
-
-    #pcd.point.positions*=scale
-
-    points = pcd.point.positions.numpy()  # Shape (N, 3)
-    R, t = E[:3, :3].numpy(), E[:3, 3].numpy()
-    camera_center = -R.T @ t
-
-    # Compute view direction vectors (from each point to camera center)
-    view_vectors = camera_center - points  # Vector pointing to the camera
-    view_vectors /= np.linalg.norm(view_vectors, axis=1, keepdims=True)  # Normalize
-
-    # Convert to Open3D tensor and add as a new attribute
-    pcd.point["view_directions_x"] = o3d.core.Tensor(view_vectors[:,0].reshape(-1,1),
-                                        dtype=o3d.core.Dtype.Float32)
-    pcd.point["view_directions_y"] = o3d.core.Tensor(view_vectors[:,1].reshape(-1,1),
-                                        dtype=o3d.core.Dtype.Float32)
-    pcd.point["view_directions_z"] = o3d.core.Tensor(view_vectors[:,2].reshape(-1,1),
-                                        dtype=o3d.core.Dtype.Float32)
-
+    pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd_o3d, intrinsic,E)
+    pcd.scale(scale,center=(0, 0, 0))
+    pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.1, max_nn=30))
     return pcd
 
-
 def write_o3d_pcd(o3d_pcd,dir,file_name):
-    o3d.t.io.write_point_cloud(f"{dir}/{file_name}.ply",o3d_pcd)
+    o3d.io.write_point_cloud(f"{dir}/{file_name}.ply",o3d_pcd)
 
 if __name__ == "__main__":
 
@@ -62,13 +43,11 @@ if __name__ == "__main__":
 
     dataset = "boardgames_mobile"
     main_dir = "Volumes/prn1_smb_computational_photo_001/projects/3DPhoto/Data/intermediate_data/%s/"%dataset
-    N =  218
-    minD = 4.166666666666667
+    N =  1#218
     trunc = 12500.
     scale = 0.12
-    factor = (2**16-1)
 
-    full = False
+    full = False #True
     if full :
         pcd_dir = main_dir + "generated_pcd/"
         if not os.path.exists(pcd_dir):
@@ -79,7 +58,7 @@ if __name__ == "__main__":
         os.makedirs(traj_dir)
 
     subsample = True
-    SUBSAMPLE = 4
+    SUBSAMPLE = 100
     if subsample :
         sub_pcd_dir = main_dir + "generated_sub_pcd/"
         if not os.path.exists(sub_pcd_dir):
@@ -102,26 +81,25 @@ if __name__ == "__main__":
 
         color_image = load_image_to_numpy(source_img)
         depth_map = load_image_to_numpy(depth_img_path,resize=(w,h))
-        depth_map = ((depth_map/factor)*(trunc-minD) )+ minD
         # Example 3x4 transformation matrix (identity)
         E = parse_extrinsic_matrix(proj_mat_txt,K)
-        
-        K,E = o3d.core.Tensor(K),o3d.core.Tensor(E)
 
-        # Call the function to convert depth to point cloud and save it
+
+        # Call the function to convert depth to point cloud and visualize it
+        pcd = depth_to_point_cloud(color_image,depth_map, K,E,trunc,scale)
 
         if subsample :
-            sub_pcd = depth_to_point_cloud(color_image,depth_map, K,E,trunc,scale,SUBSAMPLE)
+            sub_pcd = o3d.geometry.PointCloud.uniform_down_sample(pcd,SUBSAMPLE)
             write_o3d_pcd(sub_pcd,sub_pcd_dir,f"img_to_pcd_{image_int}")
         if full :
-            pcd = depth_to_point_cloud(color_image,depth_map, K,E,trunc,scale)
             write_o3d_pcd(pcd,pcd_dir,f"img_to_pcd_{image_int}")
 
 
         # Extract translation (camera position)
-        R, t = E[:3, :3].numpy(), E[:3, 3].numpy()
-        camera_center = -R.T @ t
-        trajectory_points.append(camera_center)
+        position = E[:3, 3]
+        print(type(position))
+        print(position.dtype)
+        trajectory_points.append(position)
 
     # Create a point cloud for visualization
     pcd_cam = o3d.geometry.PointCloud()

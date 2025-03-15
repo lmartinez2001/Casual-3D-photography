@@ -25,7 +25,7 @@ def construct_4x4_extrinsic(R, t):
     E = np.eye(4)  # Initialize as identity matrix
     E[:3, :3] = R  # Set rotation part
     E[:3, 3] = t.flatten()  # Set translation part
-    return E
+    return E.astype(np.float32)
 
 def parse_extrinsic_matrix(file_path,K_intrinsic):
 
@@ -68,7 +68,7 @@ def parse_pinhole_camera_params(file_path):
             # Construct the intrinsic matrix K
             K = np.array([[fx, 0, cx],
                           [0, fy, cy],
-                          [0, 0, 1]])
+                          [0, 0, 1]],dtype=np.float32)
             
             return K, width, height
     

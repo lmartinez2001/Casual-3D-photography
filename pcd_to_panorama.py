@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from parsers.parsers import compute_rotation_matrix
+from utils.parsers import compute_rotation_matrix
 
 # ==============================
 # Configuration
@@ -13,7 +13,9 @@ dataset = "boardgames_mobile"
 main_dir = "Volumes/prn1_smb_computational_photo_001/projects/3DPhoto/Data/intermediate_data/%s/"%dataset
 N =  218
 trunc = 12500.
-center = np.array([0.117654, 0.0759836, -0.141303])
+scale = 0.12
+
+center = np.array([0.117654, 0.0759836, -0.141303])*scale
 panoUp = np.array([-0.933171, 0.0182682, 0.358972])
 panoForward = np.array([-0.342018, 0.261994, -0.90243])
 R = compute_rotation_matrix(panoForward, panoUp)
@@ -24,8 +26,8 @@ subsample = True
 if subsample :
     pcd_dir = main_dir + "generated_sub_pcd/"
 
-panorama_width = 2048//2  # Output width
-panorama_height = 1024 //2 # Output height
+panorama_width = 2048#//2  # Output width
+panorama_height = 1024# //2 # Output height
 use_z_test = True  # Enable depth-based occlusion handling
 
 # Initialize panorama and depth buffer
@@ -40,10 +42,10 @@ depth_buffer = np.full((panorama_height, panorama_width),trunc)  # Z-buffer
 # Example: Load from a PLY file (modify as needed)
 for k in tqdm(range(N)):
     #print(k)
-    pcd = o3d.io.read_point_cloud(f"{pcd_dir}/img_to_pcd_{k}.ply") 
+    pcd = o3d.t.io.read_point_cloud(f"{pcd_dir}/img_to_pcd_{k}.ply") 
     pcd.rotate(R, center)  
-    points_3d = np.asarray(pcd.points)  # Shape (N, 3)
-    colors = np.asarray(pcd.colors)  # Shape (N, 3)
+    points_3d = pcd.point.positions.numpy()  # Shape (N, 3)
+    colors = pcd.point.colors.numpy()  # Shape (N, 3)
 
     # ==============================
     # Projection and Mapping
@@ -82,5 +84,4 @@ for k in tqdm(range(N)):
 # Save and Display Panorama
 # ==============================
 plt.imsave("panorama_rgb.png", panorama)
-
 plt.imsave("panorama_d.png",np.log(depth_buffer))
