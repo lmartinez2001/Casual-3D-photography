@@ -4,6 +4,18 @@ import os
 from tqdm import tqdm
 from utils.normals import compute_local_PCA
 
+def stretch_penalty(normals,view_dirs,tresh_angle = 1.66):
+
+    dot_product = np.abs(np.sum(normals * view_dirs, axis=1,keepdims=True))
+    incidence_angle = np.arccos(dot_product)
+    grazing_angle = 90 - np.degrees(incidence_angle)
+    s = 1 - np.clip((grazing_angle/tresh_angle),a_min = 0,a_max=1)
+    return s
+
+def recompute_z(z,s,trunc):
+    new_z = (((z/trunc) + s)/2)*trunc
+    return new_z
+
 if __name__ == "__main__":
 
     #parser = argparse.ArgumentParser()
@@ -19,11 +31,14 @@ if __name__ == "__main__":
 
     full = False
     if full :
-        pcd_dir = main_dir + "generated_pcd/"
+        pcd_dir = main_dir + "generated_pcd"
 
     subsample = True
     if subsample :
-        pcd_dir = main_dir + "generated_sub_pcd/"
+        pcd_dir = main_dir + "generated_sub_pcd"
+    out_dir = pcd_dir+"_normals"
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
 
     for image_int in tqdm(range(N)):
 
@@ -32,10 +47,17 @@ if __name__ == "__main__":
         camera_intrinsics_txt = main_dir+"sparse/undistorted/%03d.jpg.camera.txt"%image_int
         proj_mat_txt = main_dir+"sparse/undistorted/%03d.jpg.proj_matrix.txt"%image_int
 
-        pcd = meshio.read(f"{pcd_dir}/img_to_pcd_{image_int}.ply"   )
-        vx,vy,vz = pcd.point_data['view_directions_x'],pcd.point_data['view_directions_y'],pcd.point_data['view_directions_z']
+        pcd = meshio.read(f"{pcd_dir}/img_to_pcd_{image_int}.vtk",file_format="vtk")
+        v = pcd.point_data['View_dir']
 
         all_eigenvalues, all_eigenvectors = compute_local_PCA(pcd.points, pcd.points, 0.50)
         normals = all_eigenvectors[:, :, 0]
+        normals  /= np.linalg.norm(normals, axis=1, keepdims=True)  # Normalize
+
+        pcd.point_data['Normals'] = normals
+        pcd.point_data['s'] = stretch_penalty(normals,v)
+
+        meshio.write(f"{out_dir}/pcd_{image_int}_with_normals.vtk",pcd)
+        
 
         

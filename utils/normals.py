@@ -63,8 +63,8 @@ def compute_local_PCA(query_points, cloud_points, radius):
 
     # This function needs to compute PCA on the neighborhoods of all query_points in cloud_points
 
-    all_eigenvalues = np.zeros((cloud_points.shape[0], 3))
-    all_eigenvectors = np.zeros((cloud_points.shape[0], 3, 3))
+    all_eigenvalues = np.zeros((cloud_points.shape[0], 3),dtype=np.float32)
+    all_eigenvectors = np.zeros((cloud_points.shape[0], 3, 3),dtype=np.float32)
 
     tree = KDTree(cloud_points)
     nneigh = tree.query_radius(query_points, radius) # array([array([...]), ...])

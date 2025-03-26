@@ -7,6 +7,7 @@ import argparse
 from tqdm import tqdm
 import os
 
+import meshio
 
 def depth_to_point_cloud(color_image,depth_image,K,E,trunc,scale,subsample = 1):
     """
@@ -38,20 +39,26 @@ def depth_to_point_cloud(color_image,depth_image,K,E,trunc,scale,subsample = 1):
     # Compute view direction vectors (from each point to camera center)
     view_vectors = camera_center - points  # Vector pointing to the camera
     view_vectors /= np.linalg.norm(view_vectors, axis=1, keepdims=True)  # Normalize
+    
+    dict_pcd = {
+        "pcd" : pcd,
+        "view_vectors" : view_vectors
+    }
 
-    # Convert to Open3D tensor and add as a new attribute
-    pcd.point["view_directions_x"] = o3d.core.Tensor(view_vectors[:,0].reshape(-1,1),
-                                        dtype=o3d.core.Dtype.Float32)
-    pcd.point["view_directions_y"] = o3d.core.Tensor(view_vectors[:,1].reshape(-1,1),
-                                        dtype=o3d.core.Dtype.Float32)
-    pcd.point["view_directions_z"] = o3d.core.Tensor(view_vectors[:,2].reshape(-1,1),
-                                        dtype=o3d.core.Dtype.Float32)
-
-    return pcd
+    return dict_pcd
 
 
 def write_o3d_pcd(o3d_pcd,dir,file_name):
-    o3d.t.io.write_point_cloud(f"{dir}/{file_name}.ply",o3d_pcd)
+    N = o3d_pcd["view_vectors"].shape[0]
+    mesh = meshio.Mesh(
+    points=o3d_pcd['pcd'].point.positions.numpy(),
+    cells=[("vertex",np.array([[i,] for i in range(N)]))],  # No connectivity (pure point cloud)
+    point_data={
+        "View_dir": o3d_pcd["view_vectors"],
+        "Colors": o3d_pcd['pcd'].point.colors.numpy()
+    }
+    )
+    mesh.write(f"{dir}/{file_name}.vtk",file_format="vtk")
 
 if __name__ == "__main__":
 
@@ -79,7 +86,7 @@ if __name__ == "__main__":
         os.makedirs(traj_dir)
 
     subsample = True
-    SUBSAMPLE = 4
+    SUBSAMPLE = 16
     if subsample :
         sub_pcd_dir = main_dir + "generated_sub_pcd/"
         if not os.path.exists(sub_pcd_dir):
@@ -122,6 +129,11 @@ if __name__ == "__main__":
         R, t = E[:3, :3].numpy(), E[:3, 3].numpy()
         camera_center = -R.T @ t
         trajectory_points.append(camera_center)
+        if image_int ==0 :
+            pcd_cam = o3d.geometry.PointCloud()
+            pcd_cam.points = o3d.utility.Vector3dVector(trajectory_points)
+            pcd_cam.paint_uniform_color([0, 1, 0])  # Green for trajectory points
+            o3d.io.write_point_cloud(f"{traj_dir}camera_0.ply", pcd_cam,write_ascii = True)
 
     # Create a point cloud for visualization
     pcd_cam = o3d.geometry.PointCloud()
