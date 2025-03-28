@@ -6,15 +6,11 @@ from utils.normals import compute_local_PCA
 
 def stretch_penalty(normals,view_dirs,tresh_angle = 1.66):
 
-    dot_product = np.abs(np.sum(normals * view_dirs, axis=1,keepdims=True))
+    dot_product = np.abs(np.sum(normals * view_dirs, axis=1))
     incidence_angle = np.arccos(dot_product)
     grazing_angle = 90 - np.degrees(incidence_angle)
     s = 1 - np.clip((grazing_angle/tresh_angle),a_min = 0,a_max=1)
     return s
-
-def recompute_z(z,s,trunc):
-    new_z = (((z/trunc) + s)/2)*trunc
-    return new_z
 
 if __name__ == "__main__":
 
@@ -23,11 +19,13 @@ if __name__ == "__main__":
     #args = parser.parse_args()
     #image_int = args.img
 
-    dataset = "boardgames_mobile"
+    dataset = "creepyattic"
     main_dir = "Volumes/prn1_smb_computational_photo_001/projects/3DPhoto/Data/intermediate_data/%s/"%dataset
-    N = 1 # 218
-    trunc = 12500.
-    scale = 0.12
+    N =  50
+    minD = 3.3333333333333335
+    trunc = 10000.0
+    scale = 0.15
+    factor = (2**16-1)
 
     full = False
     if full :
@@ -55,9 +53,11 @@ if __name__ == "__main__":
         normals  /= np.linalg.norm(normals, axis=1, keepdims=True)  # Normalize
 
         pcd.point_data['Normals'] = normals
-        pcd.point_data['s'] = stretch_penalty(normals,v)
 
-        meshio.write(f"{out_dir}/pcd_{image_int}_with_normals.vtk",pcd)
+        #s = stretch_penalty(normals,v)
+        #pcd.point_data['s'] = s
+
+        meshio.write(f"{out_dir}/pcd_{image_int}.vtk",pcd)
         
 
         

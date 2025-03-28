@@ -67,12 +67,12 @@ if __name__ == "__main__":
     #args = parser.parse_args()
     #image_int = args.img
 
-    dataset = "boardgames_mobile"
+    dataset = "creepyattic"
     main_dir = "Volumes/prn1_smb_computational_photo_001/projects/3DPhoto/Data/intermediate_data/%s/"%dataset
-    N =  218
-    minD = 4.166666666666667
-    trunc = 12500.
-    scale = 0.12
+    N =  50
+    minD = 3.3333333333333335
+    trunc = 10000.0
+    scale = 0.15
     factor = (2**16-1)
 
     full = False
