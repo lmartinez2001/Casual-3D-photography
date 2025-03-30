@@ -86,9 +86,9 @@ if __name__ == "__main__":
         os.makedirs(traj_dir)
 
     subsample = True
-    SUBSAMPLE = 16
+    SUBSAMPLE = 6
     if subsample :
-        sub_pcd_dir = main_dir + "generated_sub_pcd/"
+        sub_pcd_dir = main_dir + "generated_sub_pcd/" #_apple_d/"
         if not os.path.exists(sub_pcd_dir):
             os.makedirs(sub_pcd_dir)
     
@@ -100,6 +100,7 @@ if __name__ == "__main__":
 
         source_img = main_dir+"sparse/undistorted/%03d.jpg"%image_int
         depth_img_path = main_dir+"dense/depthmaps/%03d.png"%image_int
+        #depth_img_path = main_dir+"depths/%03d.png"%image_int
         camera_intrinsics_txt = main_dir+"sparse/undistorted/%03d.jpg.camera.txt"%image_int
         proj_mat_txt = main_dir+"sparse/undistorted/%03d.jpg.proj_matrix.txt"%image_int
         # Example depth map (synthetic)

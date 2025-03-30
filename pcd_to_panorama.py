@@ -32,8 +32,8 @@ subsample_with_normals = False
 if subsample_with_normals :
     pcd_dir = main_dir + "generated_sub_pcd_normals/"
 
-panorama_width = 2048//4 # Output width
-panorama_height = 1024//4 # Output height
+panorama_width = 2048 //2# Output width
+panorama_height = 1024 //2 # Output height
 use_z_test = 1  # Enable depth-based occlusion handling
 save_s = False
 # Initialize panorama and depth buffer
@@ -98,7 +98,7 @@ for k in tqdm(range(N)):
     colors = (pcd.point_data["Colors"])#* 255).astype(np.uint8) # Shape (N, 3)
     X, Y, Z = points_3d.T
     pano_x,pano_y,r = cartesian_to_equirectangular(points_3d, panorama_width, panorama_height)
-    
+    r, theta, phi = cartesian_to_spherical(points_3d)
     # Compute Z for the test
     if use_z_test > 1 :
         Z_prim = compute_z_prim(r,s)
@@ -118,6 +118,9 @@ for k in tqdm(range(N)):
             if np.isnan(front_buffer[y,x]) or (Z_prim[candidates[best]]< front_buffer[y,x]) :
                 front_buffer[y,x] = Z_prim[candidates[best]][0]
                 panorama_front[y,x] = colors[candidates[best]]
+                #if (y==50 and x==350) : 
+                #    print(X[candidates[best]],Y[candidates[best]],Z[candidates[best]])
+                #    print(r[candidates[best]],theta[candidates[best]],phi[candidates[best]])
             best = np.argmax(Z_prim[candidates])
             if np.isnan(back_buffer[y,x]) or (Z_prim[candidates[best]]>back_buffer[y,x]) :
                 back_buffer[y,x] = Z_prim[candidates[best]][0]
