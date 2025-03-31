@@ -49,16 +49,35 @@ def depth_to_point_cloud(color_image,depth_image,K,E,trunc,scale,subsample = 1):
 
 
 def write_o3d_pcd(o3d_pcd,dir,file_name):
+
     N = o3d_pcd["view_vectors"].shape[0]
     mesh = meshio.Mesh(
     points=o3d_pcd['pcd'].point.positions.numpy(),
-    cells=[("vertex",np.array([[i,] for i in range(N)]))],  # No connectivity (pure point cloud)
+    cells=[("vertex",np.array([[i,] for i in range(N)])),
+           #("triangle",make_triangles((row-5)//16,(col-6)//16))
+        ],  # No connectivity (pure point cloud)
     point_data={
         "View_dir": o3d_pcd["view_vectors"],
         "Colors": o3d_pcd['pcd'].point.colors.numpy()
     }
     )
     mesh.write(f"{dir}/{file_name}.vtk",file_format="vtk")
+
+def make_triangles(row,col):
+    triangles = []
+    R = np.arange((row-1))[:,None]
+    C = np.arange(col-1)[None,:]
+
+    p1 = (R*col+C).flatten()
+    p2 = ((R+1)*col+C).flatten()
+    p3 =(R*col+C+1).flatten()
+    p4 = ((R+1)*col+C+1).flatten()
+
+    s1 = np.stack((p1, p2, p3),axis=1)
+    s2 = np.stack((p4, p2, p3),axis=1)
+
+    triangles = np.vstack([s1,s2])
+    return triangles
 
 if __name__ == "__main__":
 
@@ -86,7 +105,7 @@ if __name__ == "__main__":
         os.makedirs(traj_dir)
 
     subsample = True
-    SUBSAMPLE = 6
+    SUBSAMPLE = 16
     if subsample :
         sub_pcd_dir = main_dir + "generated_sub_pcd/" #_apple_d/"
         if not os.path.exists(sub_pcd_dir):
@@ -111,6 +130,7 @@ if __name__ == "__main__":
         color_image = load_image_to_numpy(source_img)
         depth_map = load_image_to_numpy(depth_img_path,resize=(w,h))
         depth_map = ((depth_map/factor)*(trunc-minD) )+ minD
+        row,col = depth_map.shape
         # Example 3x4 transformation matrix (identity)
         E = parse_extrinsic_matrix(proj_mat_txt,K)
         
