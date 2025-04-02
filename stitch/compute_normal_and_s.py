@@ -21,6 +21,7 @@ if __name__ == "__main__":
 
     dataset = "creepyattic"
     main_dir = "Volumes/prn1_smb_computational_photo_001/projects/3DPhoto/Data/intermediate_data/%s/"%dataset
+    ### Values from param.txt
     N =  50
     minD = 3.3333333333333335
     trunc = 10000.0
@@ -30,10 +31,10 @@ if __name__ == "__main__":
     full = False
     if full :
         pcd_dir = main_dir + "generated_pcd"
-
     subsample = True
     if subsample :
         pcd_dir = main_dir + "generated_sub_pcd"
+
     out_dir = pcd_dir+"_normals"
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
@@ -54,8 +55,8 @@ if __name__ == "__main__":
 
         pcd.point_data['Normals'] = normals
 
-        #s = stretch_penalty(normals,v)
-        #pcd.point_data['s'] = s
+        s = stretch_penalty(normals,v)
+        pcd.point_data['s'] = s
 
         meshio.write(f"{out_dir}/pcd_{image_int}.vtk",pcd)
         

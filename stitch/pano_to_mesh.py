@@ -48,8 +48,9 @@ def points_to_mesh(points,colors):
 
     mesh = meshio.Mesh(
     points=v_points,
-    cells=[#("vertex",np.array([[i,] for i in range(v_points.shape[0])])),
-           ("triangle",np.array(triangles))],  # No connectivity (pure point cloud)
+    cells=[("vertex",np.array([[i,] for i in range(v_points.shape[0])])),
+           #("triangle",np.array(triangles))
+           ],  # No connectivity (pure point cloud)
     point_data={
         "Colors": v_colors
     }

@@ -88,6 +88,8 @@ if __name__ == "__main__":
 
     dataset = "creepyattic"
     main_dir = "Volumes/prn1_smb_computational_photo_001/projects/3DPhoto/Data/intermediate_data/%s/"%dataset
+    
+    ### Values from param.txt
     N =  50
     minD = 3.3333333333333335
     trunc = 10000.0
@@ -105,7 +107,7 @@ if __name__ == "__main__":
         os.makedirs(traj_dir)
 
     subsample = True
-    SUBSAMPLE = 16
+    SUBSAMPLE = 6
     if subsample :
         sub_pcd_dir = main_dir + "generated_sub_pcd/" #_apple_d/"
         if not os.path.exists(sub_pcd_dir):
@@ -150,11 +152,11 @@ if __name__ == "__main__":
         R, t = E[:3, :3].numpy(), E[:3, 3].numpy()
         camera_center = -R.T @ t
         trajectory_points.append(camera_center)
-        if image_int ==0 :
+        if image_int in [0,2,8,12,20,30,40,45] :
             pcd_cam = o3d.geometry.PointCloud()
-            pcd_cam.points = o3d.utility.Vector3dVector(trajectory_points)
+            pcd_cam.points = o3d.utility.Vector3dVector([trajectory_points[-1]])
             pcd_cam.paint_uniform_color([0, 1, 0])  # Green for trajectory points
-            o3d.io.write_point_cloud(f"{traj_dir}camera_0.ply", pcd_cam,write_ascii = True)
+            o3d.io.write_point_cloud(f"{traj_dir}camera_{image_int}.ply", pcd_cam,write_ascii = True)
 
     # Create a point cloud for visualization
     pcd_cam = o3d.geometry.PointCloud()

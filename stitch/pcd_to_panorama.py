@@ -12,16 +12,18 @@ from utils.parsers import compute_rotation_matrix
 dataset = "creepyattic"
 main_dir = "Volumes/prn1_smb_computational_photo_001/projects/3DPhoto/Data/intermediate_data/%s/"%dataset
 N = 50
+
+### Values from param.txt
 minD = 3.3333333333333335
 trunc = 10000.0
 scale = 0.15
 factor = (2**16-1)
-
 center = np.array([0.0886422, 0.00969138, 0.0281881])*scale
 panoForward = np.array([-0.090604, 0.75476, -0.649714])
 panoUp = np.array([0.223168, 0.651192, 0.725356])
 R = compute_rotation_matrix(panoForward, panoUp)
 
+##
 pcd_dir = main_dir + "generated_pcd/"
 
 subsample = True
@@ -32,8 +34,8 @@ subsample_with_normals = False
 if subsample_with_normals :
     pcd_dir = main_dir + "generated_sub_pcd_normals/"
 
-panorama_width = 2048 //2# Output width
-panorama_height = 1024 //2 # Output height
+panorama_width = 2048//2# Output width
+panorama_height = 1024//2 # Output height
 use_z_test = 1  # Enable depth-based occlusion handling
 save_s = False
 # Initialize panorama and depth buffer
