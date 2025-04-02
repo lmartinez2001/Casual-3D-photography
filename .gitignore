@@ -80,7 +80,14 @@ Desktop.ini
 
 # VSCode Python debugging files
 *.pid
+
+#Draft
+
+draft/
 res/
 FastPD/
 
+#dataset
+
+library-mobile/
 .venv/
