@@ -55,7 +55,7 @@ def to_normalized_coordinates(point: np.ndarray, config: dict):
 
 
 def get_all_extrinsic_params(root_path: str, K: np.ndarray) -> tuple:
-    # ../res/sparse/undistorted
+    # ../Volumes/prn1_smb_computational_photo_001/projects/3DPhoto/Data/intermediate_data/creepy-attic/sparse/undistorted
     all_P_files = []
     # Retrive every projection matrix file
     for f in os.listdir(root_path):

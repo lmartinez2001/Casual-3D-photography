@@ -1,3 +1,6 @@
+# This script converts the text file outputted by COLMAP into dataframes.
+# These dataframes are further used to retrieve the extrinsic parameters for each image
+# The latter are key for every step of the scene reconstruction pipeline
 import os
 import polars as pl
 import argparse
